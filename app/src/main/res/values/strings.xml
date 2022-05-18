@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Stripe</string>
+    <string name="success">success</string>
+    <string name="validation_error">error</string>
+    <string name="name_too_short">name too short</string>
+    <string name="card_number_too_short">card number too short</string>
+    <string name="enter_card_no">Enter Card Number</string>
+    <string name="client_secret">your client secret</string>
+    <string name="stripeKey">stripe key</string>
+</resources>
