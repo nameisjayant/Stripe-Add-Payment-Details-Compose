@@ -51,6 +51,28 @@ class StripeActivity : ComponentActivity() {
 
                     expiryDateArray = expiryDate.value.split("/").toTypedArray()
 
+                    val paymentLauncher = PaymentLauncher.Companion.createForCompose(
+                        publishableKey = resources.getString(R.string.stripeKey),
+                    ){ paymentResult->
+                        when(paymentResult){
+
+                            is PaymentResult.Completed->{
+                                isDialog=  false
+                                Toast.makeText(this@StripeActivity,"Payment Added",Toast.LENGTH_SHORT).show()
+                            }
+
+                            is PaymentResult.Canceled->{
+                                isDialog=  false
+                                Toast.makeText(this@StripeActivity,"something went wrong",Toast.LENGTH_SHORT).show()
+                            }
+
+                            is PaymentResult.Failed->{
+                                isDialog=  false
+                                Toast.makeText(this@StripeActivity,paymentResult.throwable.message,Toast.LENGTH_SHORT).show()
+                            }
+
+                        }
+                    }
 
                     Row(
                         modifier = Modifier
@@ -71,13 +93,38 @@ class StripeActivity : ComponentActivity() {
 
                     CommonTextField(text = holderName, placeholder = "Enter holder name")
 
-                    CommonTextField(text = expiryDate, placeholder = "03/2022")
+                    CommonTextField(text = expiryDate, placeholder = "Expiry Date")
 
                     CommonTextField(text = cvv, placeholder = "Enter cvv number")
 
                     Button(
                         onClick = {
+                                  isDialog = true
+                            val name = PaymentMethod.BillingDetails(
+                                name = holderName.value
+                            )
 
+                            val paymentMethod = PaymentMethodCreateParams.create(
+                                PaymentMethodCreateParams.Card
+                                    .Builder()
+                                    .run {
+                                        setNumber(creditCardNumber.value)
+                                        setExpiryMonth(expiryDateArray[0].toInt())
+                                        setExpiryYear(expiryDateArray[1].toInt())
+                                        setCvc(cvv.value)
+                                        build()
+                                    },
+                                name
+                            )
+
+                            val confirmParams = ConfirmSetupIntentParams.create(
+                                paymentMethod,
+                                resources.getString(R.string.client_secret)
+                            )
+
+                            scope.launch {
+                                paymentLauncher.confirm(confirmParams)
+                            }
 
                         }, modifier = Modifier
                             .fillMaxWidth()
